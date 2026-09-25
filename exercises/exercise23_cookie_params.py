@@ -17,7 +17,9 @@ app = FastAPI()
 # 路径: /items/
 # Cookie 参数: ads_id (可选的 str)
 # 返回: {"ads_id": ads_id}
-
+@app.get("/items/")
+def get_item(ads_id: Annotated[str | None, Cookie()] = None):
+    return {"ads_id": ads_id}
 # TODO: 创建一个带必需 Cookie 的端点
 # 路径: /user/
 # Cookie 参数: session_id (必需的 str)
