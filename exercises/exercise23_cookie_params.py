@@ -24,6 +24,9 @@ def get_item(ads_id: Annotated[str | None, Cookie()] = None):
 # 路径: /user/
 # Cookie 参数: session_id (必需的 str)
 # 返回: {"session_id": session_id}
+@app.get("/user/")
+def get_user(session_id: Annotated[str, Cookie()]):
+    return {"session_id": session_id}
 
 # TODO: 创建一个带 Cookie 验证的端点
 # 路径: /settings/
@@ -31,6 +34,10 @@ def get_item(ads_id: Annotated[str | None, Cookie()] = None):
 #   - theme: str (可选，默认值 "light"，可选值: "light", "dark", "auto")
 #   - language: str (可选，默认值 "en"，最大长度: 5)
 # 返回: {"theme": theme, "language": language}
+@app.get("/settings/")
+def get_settings(
+    theme: Annotated[str, Cookie()] = "light",
+):
 
 # TODO: 创建一个带多个 Cookie 参数的端点
 # 路径: /preferences/
