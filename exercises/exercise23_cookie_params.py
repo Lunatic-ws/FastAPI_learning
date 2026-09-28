@@ -7,7 +7,7 @@
 # 4. 理解 Cookie 参数与查询参数的区别
 
 # TODO: 导入必要的模块
-from typing import Annotated
+from typing import Annotated, Literal
 from fastapi import FastAPI, Cookie
 
 # TODO: 创建 FastAPI 应用实例
@@ -20,6 +20,7 @@ app = FastAPI()
 @app.get("/items/")
 def get_item(ads_id: Annotated[str | None, Cookie()] = None):
     return {"ads_id": ads_id}
+
 # TODO: 创建一个带必需 Cookie 的端点
 # 路径: /user/
 # Cookie 参数: session_id (必需的 str)
@@ -35,9 +36,11 @@ def get_user(session_id: Annotated[str, Cookie()]):
 #   - language: str (可选，默认值 "en"，最大长度: 5)
 # 返回: {"theme": theme, "language": language}
 @app.get("/settings/")
-def get_settings(
-    theme: Annotated[str, Cookie()] = "light",
+def get_setting(
+    theme: Annotated[Literal["light", "dark", "auto"], Cookie()] = "light",
+    language: Annotated[str, Cookie(max_length=5)] = "en"
 ):
+    return {"theme": theme, "language": language}
 
 # TODO: 创建一个带多个 Cookie 参数的端点
 # 路径: /preferences/
@@ -46,6 +49,13 @@ def get_settings(
 #   - tracking_enabled: bool (可选，默认值 True)
 #   - last_visit: str (可选)
 # 返回: 包含所有 Cookie 值的字典
+@app.get("/preferences/")
+def get_preferences(
+    user_id: Annotated[int | None, Cookie()] = None,
+    tracking_enabled: Annotated[bool, Cookie()] = True,
+    last_visit: Annotated[str | None, Cookie()] = None
+):
+    return {"user_id": user_id, "tracking_enabled": tracking_enabled, "last_visit": last_visit}
 
 # TODO: 创建一个混合参数类型的端点
 # 路径: /analytics/{page_id}
@@ -53,12 +63,24 @@ def get_settings(
 # 查询参数: timestamp (可选的 str)
 # Cookie 参数: visitor_id (可选的 str)
 # 返回: 包含所有参数的字典
+@app.get("/analytics/{page_id}")
+def get_analytics(
+    page_id: int,
+    timestamp: str | None = None,
+    visitor_id: Annotated[str | None, Cookie()] = None
+):
+    return {"page_id": page_id, "timestamp": timestamp, "visitor_id": visitor_id}
 
 # TODO: 创建一个带 Cookie 说明的端点
 # 路径: /config/
 # Cookie 参数: 
 #   - config_token (str，可选，添加描述 "Configuration token for user preferences")
 # 返回: {"config_token": config_token}
+@app.get("/config/")
+def get_config(
+    config_token: Annotated[str | None, Cookie(description="Configuration token for user preferences")] = None
+):
+    return {"config_token": config_token}
 
 if __name__ == "__main__":
     pass
