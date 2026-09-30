@@ -232,7 +232,7 @@ def read_items_open(
 
 @app.get("/items-admin-only/")
 def read_items_admin_only(
-    user: Annotated[dict[str, Any], Security(get_current_user, scopes=["items:read", "users:read"])],
+    user: Annotated[dict[str, Any], Security(get_current_user)],
 ) -> dict[str, Any]:
     missing = [scope for scope in ("items:read", "users:read") if scope not in user["scopes"]]
     if missing:

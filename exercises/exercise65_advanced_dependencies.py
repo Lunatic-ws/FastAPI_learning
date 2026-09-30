@@ -3,7 +3,7 @@
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Security, status
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query, Security, status
 from fastapi.security import SecurityScopes
 
 app = FastAPI()
@@ -218,8 +218,14 @@ def get_current_user(
     security_scopes: SecurityScopes,
     x_user: Annotated[str | None, Header()] = None,
 ) -> dict[str, Any]:
-    username = x_user if x_user is not None else (security_scopes.scopes[0] if security_scopes.scopes else "guest")
-    user = fake_users.get(username)
+    required = security_scopes.scopes or ["未声明"]
+    if x_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"缺少凭据，需要权限: {', '.join(required)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    user = fake_users.get(x_user)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
