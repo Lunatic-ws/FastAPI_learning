@@ -46,10 +46,36 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict | None:
 # 接收 OAuth2PasswordRequestForm 表单（username、password）
 # username存在且password为"secret"时，返回 {"access_token": username + "-secret", "token_type": "bearer"}
 
+@app.post("/token/")
+def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+) -> dict:
+    user = fake_users_db.get(form_data.username)
+    if user is None or not pwd_context.verify(form_data.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=401,
+            detail="错误的用户名或密码",
+            headers=AUTH_HEADERS,
+        )
+    return {
+        "access_token": user["username"] + TOKEN_SUFFIX,
+        "token_type": "bearer",
+    }
+
 # 题目4：受保护接口
 # 创建GET接口 /users/me/，依赖get_current_user返回用户信息
 # 用户为None时抛出 HTTPException(401)，并设置 headers={"WWW-Authenticate": "Bearer"}
 # 使用 /docs 的Authorize流程完整测试登录与访问
+
+@app.get("/users/me/")
+def read_users_me(current_user: dict | None = Depends(get_current_user)) -> dict:
+    if current_user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="无效的认证凭据",
+            headers=AUTH_HEADERS,
+        )
+    return {key: value for key, value in current_user.items() if key != "hashed_password"}
 
 # 在下方编写你的代码实现
 if __name__ == "__main__":

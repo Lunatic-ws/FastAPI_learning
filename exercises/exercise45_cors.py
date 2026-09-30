@@ -112,7 +112,7 @@ def create_item4(item: dict[str, object]) -> dict[str, bool]:
     return {"created": True}
 
 
-@app4.delete("/items/{item_id}")
+@app4.delete("/items/{item_id}/")
 def delete_item4(item_id: int) -> dict[str, int]:
     return {"deleted": item_id}
 
