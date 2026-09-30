@@ -14,5 +14,34 @@
 # - 每个yield生成一个Item对象
 # - 客户端接收到的是JSON Lines格式
 
+import asyncio
+from collections.abc import AsyncIterable
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+
+class Item(BaseModel):
+    name: str
+    price: float
+
+
+catalog: list[Item] = [
+    Item(name="Hammer", price=9.99),
+    Item(name="Nail", price=0.5),
+    Item(name="Screw", price=1.25),
+    Item(name="Wrench", price=15.0),
+    Item(name="Drill", price=49.9),
+]
+
+
+@app.get("/items/stream")
+async def stream_items() -> AsyncIterable[Item]:
+    for item in catalog:
+        await asyncio.sleep(0.01)
+        yield item
+
 if __name__ == "__main__":
     pass

@@ -1,15 +1,45 @@
 # 练习42：简单OAuth2
 # 要求：根据注释要求实现相应的FastAPI应用
 # 说明：使用 OAuth2PasswordBearer 和 OAuth2PasswordRequestForm
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+
+app = FastAPI()
+
+TOKEN_SUFFIX = "-secret"
+FAKE_PASSWORD = "secret"
+AUTH_HEADERS = {"WWW-Authenticate": "Bearer"}
 
 # 题目1：创建OAuth2方案
 # 使用 OAuth2PasswordBearer(tokenUrl="token") 创建 oauth2_scheme
 # 在 /docs 中观察出现Authorizate按钮的效果
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 # 题目2：模拟用户数据库与当前用户
 # 创建fake_users_db = {"alice": {"username": "alice", "full_name": "Alice Wang", "email": "alice@example.com"}}
 # 创建get_current_user依赖：接收 token: str = Depends(oauth2_scheme)
 # token格式为"alice-secret"时返回用户，否则返回None
+
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+
+fake_users_db: dict[str, dict] = {
+    "alice": {
+        "username": "alice",
+        "full_name": "Alice Wang",
+        "email": "alice@example.com",
+        "hashed_password": pwd_context.hash(FAKE_PASSWORD),
+    }
+}
+
+
+def get_current_user(token: str = Depends(oauth2_scheme)) -> dict | None:
+    if not token.endswith(TOKEN_SUFFIX):
+        return None
+    return fake_users_db.get(token[: -len(TOKEN_SUFFIX)])
 
 # 题目3：登录端点颁发token
 # 创建POST接口 /token/
